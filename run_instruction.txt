@@ -1,0 +1,2 @@
+for backend :-"uvicorn main:app --reload"
+for frontent :- "npm run dev"

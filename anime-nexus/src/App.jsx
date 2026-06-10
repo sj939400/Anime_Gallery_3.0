@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -13,9 +14,34 @@ import CharacterDetail from './pages/CharacterDetail';
 import SearchResults from './pages/SearchResults';
 
 function App() {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-900 text-white">
+      <div className="min-h-screen transition-colors duration-300 bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
+        
+        <button 
+          onClick={toggleTheme}
+          className="fixed bottom-6 right-6 z-[100] p-4 rounded-full shadow-2xl bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-110 transition-all"
+          title="Toggle Light/Dark Mode"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+
         <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
