@@ -12,6 +12,7 @@ export default function Home() {
   const searchRef = useRef(null);
   const navigate = useNavigate();
 
+  // --- Auto-Suggest Logic ---
   useEffect(() => {
     if (query.length < 3) {
       setSuggestions([]);
@@ -33,6 +34,7 @@ export default function Home() {
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) setShowDropdown(false);
@@ -50,14 +52,24 @@ export default function Home() {
   return (
     <div className="pt-28 pb-20 transition-colors duration-300">
       
+      {/* Search Hero Section */}
       <div className="px-8 mb-16 max-w-3xl mx-auto text-center" ref={searchRef}>
-        <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 mb-4 tracking-tight">
-          Welcome to AnimeNexus
-        </h1>
+        
+        {/* Upgraded Cinematic Header */}
+        <div className="mb-6 relative inline-flex flex-col items-center">
+          <span className="text-sm font-bold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400 opacity-80 mb-2">
+            Discover Your Next Obsession
+          </span>
+          <h1 className="text-6xl md:text-7xl font-black tracking-tighter uppercase bg-gradient-to-b from-indigo-500 to-purple-700 dark:from-indigo-300 dark:to-purple-500 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(99,102,241,0.3)]">
+            AnimeNexus
+          </h1>
+        </div>
+
         <p className="text-slate-600 dark:text-slate-400 text-lg font-medium mb-8">
           Explore the vast universe of anime, curated just for you.
         </p>
 
+        {/* Search Bar */}
         <div className="relative z-20 text-left">
           <form onSubmit={handleSearchSubmit} className="relative flex items-center shadow-xl dark:shadow-2xl">
             <input 
@@ -69,11 +81,12 @@ export default function Home() {
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500/50 focus-within:border-indigo-500 rounded-full py-4 pl-8 pr-32 text-slate-900 dark:text-white focus:outline-none transition-colors shadow-inner"
               autoComplete="off"
             />
-            <button type="submit" className="absolute right-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-full font-bold transition-colors">
+            <button type="submit" className="absolute right-2 bg-indigo-600 hover:bg-indigo-500 text-white px-8 py-2.5 rounded-full font-bold transition-colors shadow-lg shadow-indigo-500/30">
               Search
             </button>
           </form>
 
+          {/* Dynamic Dropdown */}
           {showDropdown && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden z-30 flex flex-col">
               {isSearching ? (
@@ -105,6 +118,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Categories */}
       <AnimeRow title="🔥 Top Trending Now" apiUrl="https://api.jikan.moe/v4/top/anime?filter=airing&limit=15" />
       <AnimeRow title="⚔️ Action & Adventure" apiUrl="https://api.jikan.moe/v4/anime?genres=1&limit=15&order_by=score&sort=desc" />
       <AnimeRow title="🐉 Epic Fantasy" apiUrl="https://api.jikan.moe/v4/anime?genres=10&limit=15&order_by=score&sort=desc" />

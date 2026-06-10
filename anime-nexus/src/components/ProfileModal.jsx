@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 export default function ProfileModal({ isOpen, onClose }) {
   const userEmail = localStorage.getItem('anime_user');
+  const fileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({ username: '', phone: '', bio: '', location: '', profile_pic: '' });
   const [vaultCount, setVaultCount] = useState(0);
@@ -56,6 +57,23 @@ export default function ProfileModal({ isOpen, onClose }) {
     }
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setStatus("Image is too large. Please choose a file under 2MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, profile_pic: reader.result }));
+        setStatus(''); 
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (formData.phone && formData.phone.replace(/\D/g, '').length !== 10) {
@@ -80,18 +98,35 @@ export default function ProfileModal({ isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 dark:bg-black/60 backdrop-blur-md p-4">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      {/* Changed custom-scrollbar to scrollbar-hide right here 👇 */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide">
         <button onClick={onClose} className="absolute top-5 right-6 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold text-2xl transition-colors">&times;</button>
         
         <div className="text-center mb-6">
-          {/* Avatar Rendering: Image if URL exists, else Initial */}
-          <div className="mx-auto w-24 h-24 mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/20 border-2 border-indigo-400/20 overflow-hidden">
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            onChange={handleImageUpload} 
+            className="hidden" 
+          />
+
+          <div 
+            onClick={() => fileInputRef.current.click()}
+            className="mx-auto w-24 h-24 mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg shadow-indigo-500/20 border-2 border-indigo-400/20 overflow-hidden cursor-pointer group relative"
+            title="Click to upload new picture"
+          >
             {formData.profile_pic ? (
-              <img src={formData.profile_pic} alt="Profile" className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
+              <img src={formData.profile_pic} alt="Profile" className="w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
             ) : (
-              <span className="text-4xl font-bold text-white">{displayInitial}</span>
+              <span className="text-4xl font-bold text-white group-hover:opacity-50 transition-opacity">{displayInitial}</span>
             )}
+            
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+               <span className="text-white text-xs font-bold drop-shadow-md">UPLOAD</span>
+            </div>
           </div>
+
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Your Profile</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{userEmail}</p>
           
@@ -106,38 +141,28 @@ export default function ProfileModal({ isOpen, onClose }) {
         ) : (
           <form onSubmit={handleSave} className="space-y-4">
             
-            {/* Profile Picture URL Input */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Profile Picture (Image URL)</label>
-              <input 
-                type="text" name="profile_pic" value={formData.profile_pic} onChange={handleInputChange} placeholder="https://example.com/my-avatar.jpg"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Display Name</label>
                 <input 
                   type="text" name="username" value={formData.username} onChange={handleInputChange} placeholder="Nickname"
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Location</label>
                 <input 
                   type="text" name="location" value={formData.location} onChange={handleInputChange} placeholder="City, Country"
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors"
                 />
               </div>
             </div>
 
-            {/* About Yourself (Bio) */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">About Yourself</label>
               <textarea 
                 name="bio" value={formData.bio} onChange={handleInputChange} placeholder="Tell us about your favorite anime..." rows="3"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 resize-none transition-colors"
               ></textarea>
             </div>
 
@@ -145,13 +170,13 @@ export default function ProfileModal({ isOpen, onClose }) {
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
               <input 
                 type="tel" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="10-digit mobile number"
-                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition-colors"
               />
               {phoneWarning && <p className="text-xs text-pink-600 dark:text-pink-400 font-medium mt-1 animate-pulse">⚠️ {phoneWarning}</p>}
             </div>
 
             {status && (
-              <div className={`p-3 rounded-xl text-sm font-bold text-center border ${status.includes('success') ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30' : 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/30'}`}>
+              <div className={`p-3 rounded-xl text-sm font-bold text-center border transition-colors ${status.includes('success') ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30' : status.includes('too large') ? 'bg-pink-100 dark:bg-pink-500/10 text-pink-700 dark:text-pink-400 border-pink-300 dark:border-pink-500/30' : 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/30'}`}>
                 {status}
               </div>
             )}
